@@ -6,3 +6,6 @@ node_modules/
 
 # test file
 pushtest.js
+
+# env file
+.env

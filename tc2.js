@@ -1,14 +1,16 @@
 const readline = require('readline');
 var Firebase = require('firebase');
 var keypress = require('keypress');
+var env = require('node-env-file');
 
+env(__dirname + '/.env');
 
 const rl = readline.createInterface({
 	input: process.stdin,
 	output: process.stdout
 });
 
-var db = new Firebase('http://terminalchat.firebaseio.com'); // make this more secure LOL
+var db = new Firebase(process.env.dburl); // make this more secure LOL
 
 keypress(process.stdin);
 var readingInput = false;
