@@ -1,0 +1,32 @@
+# terminalchat2
+Because the first one didn't even make it out of my local folders.
+
+### Installation
+1. Clone
+2. Message me for your .env file settings
+3. Make sure you have node and npm installed.  I recommend [homebrew] (http://brew.sh/) and then a quick run of `brew install node`
+4. Run `node tc2.js` and you're up and running!
+
+### Operation
+From within the client:
+- `Ctrl+s` to send a message
+- New messages will come in automatically unless you are in the middle of typing out a message, in which case they'll wait for you to finish.  They're polite.
+- `Ctrl+q` to quit
+
+### What would possess you to write a terminal chat client in javascript?
+A bunch of things.  Namely, that I didn't want to set up my own socket shenanigans, so I piggy-backed on firebase's.
+
+Suffice to say, the non-javascript version was terminalchat1.  There's a reason it didn't go anywhere.
+
+Is it a hack?  Yes, yes it is.
+
+### Changelog
+- v2.0.1 - Added queuing of incoming messages, and user logging
+- v2.0.0 - Initial
+
+### Built with
+- [nodejs](https://nodejs.org/en/)
+- [firebase](https://www.firebase.com/)
+- [keypress](https://www.npmjs.com/package/keypress)
+- [node-env-file](https://www.npmjs.com/package/node-env-file)
+- [readline](https://www.npmjs.com/package/readline)
