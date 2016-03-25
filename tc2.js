@@ -1,27 +1,26 @@
-const readline = require('readline');
+// Import modules
+var readline = require('readline');
 var Firebase = require('firebase');
 var keypress = require('keypress');
 var env = require('node-env-file');
 
+// Load environment variables
 env(__dirname + '/.env');
 
-const rl = readline.createInterface({
-	input: process.stdin,
-	output: process.stdout
-});
+// Define globals
+var rl;					// readline interface
+var name, uid;			// user-specific vars
+var readingInput;		// state vars
+var db;					// firebase db connection
+var queuedMessages = [];// queue of incoming messages
+var sentMessages = [];	// list of sent messages (that have yet to be deleted)
+var numConnectedUsers = 0;	// number of currently active users
 
-keypress(process.stdin);
-var readingInput = false;
 
-var name;
-var uid;
+showWelcome();
+runSetup();
 
-console.log("Welcome to Terminal Chat!");
-console.log("Ctrl+s to send a message, Ctrl+q to quit");
-
-// do this after the identify step so you already have a name
-var db = new Firebase(process.env.dburl); // make this more secure LOL
-
+// Prompt user for name
 rl.question('Identify Yourself: ', (myName) => {
 	name = myName;
 
@@ -34,12 +33,14 @@ rl.question('Identify Yourself: ', (myName) => {
 	db.child('users').on('child_added', function(snapshot) {
 		var user = snapshot.val();
 		printInfo("[" + user + " has joined]");
+		numConnectedUsers++;
+
+		// go through any messages that have been waiting for a user to connect to be deleted
+		processSentMessages();
 	});
 });
 
-var queuedMessages = [];
-
-// log received messages
+// output received messages.  wait 'til we're done sending if necessary
 db.child('messages').on('child_removed', function(snapshot) {
 	var newMsg = snapshot.val();
 
@@ -52,31 +53,44 @@ db.child('messages').on('child_removed', function(snapshot) {
 	if(newMsg.uid == uid) {
 		// we sent this message
 		printInfo("[delivered]");
+
 	} else {
 		displayMessage(newMsg);
 	}
 });
 
+// listen for users leaving, and output when they do
 db.child('users').on('child_removed', function(snapshot) {
 	var user = snapshot.val();
 	printInfo("[" + user + " has left]");
+	numConnectedUsers--;
 });
+
+/*db.child('users').on('value', function(snapshot) {
+	var users = snapshot.val();
+	numConnectedUsers = Object.keys(users).length;
+	console.log(numConnectedUsers);
+});*/
 
 
 // interrupt for sending messages
-process.stdin.on('keypress', function(ch, key) {
-	
+process.stdin.on('keypress', function(ch, key) {	
 	if(key && key.name == 's' && key.ctrl && !readingInput) {
 		readingInput = true;
 		rl.question("\x1b[31m" + name + '\x1b[0m :: ' , (msg) => {
-			// LITERALLY JUST ADDING THIS AND REMOVING IT AND IT KILLS ME
-			// I don't see any major reasons (at the moment) why message delivery would be
-			// unreliable, but I'll have to do some testing
-			db.child('messages').push({
+			// sender also removes message, which triggers other clients	
+			var lastMsg = db.child('messages').push({
 				"uid"  : uid,
 				"name" : name,
 				"text" : msg
-			}).remove();
+			});
+
+			if(numConnectedUsers > 1) {
+				lastMsg.remove();
+			} else {
+				sentMessages.push(lastMsg);
+				printInfo("[queued]");
+			}
 
 			readingInput = false;
 			processMessageQueue();
@@ -90,6 +104,27 @@ process.stdin.on('keypress', function(ch, key) {
 	}
 });
 
+function showWelcome() {
+	console.log("\x1b[34m+---------------------------+");
+	console.log("| Welcome to Terminal Chat! |");
+	console.log("+---------------------------+\x1b[0m");
+	console.log("Ctrl+s to send a message, Ctrl+q to quit");
+}
+
+function runSetup() {
+	// set up input
+	rl = readline.createInterface({
+		input: process.stdin,
+		output: process.stdout
+	});
+
+	// more input	
+	keypress(process.stdin);
+	readingInput = false;
+
+	// set up db connection
+	db = new Firebase(process.env.dburl);
+}
 
 function processMessageQueue() {
 	var msg;
@@ -98,6 +133,13 @@ function processMessageQueue() {
 	}
 	while(msg = queuedMessages.shift()) {
 		displayMessage(msg);
+	}
+}
+
+function processSentMessages() {
+	var msg;
+	while(msg = sentMessages.shift()) {
+		msg.remove();	
 	}
 }
 

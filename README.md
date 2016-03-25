@@ -1,5 +1,5 @@
 # terminalchat2
-Because the first one didn't even make it out of my local folders.
+In-terminal chat client written for Mac OSX, because going all the way to Facebook Messenger is hard.  Number 2, because the first one didn't even make it out of my local folders.
 
 ### Installation
 1. Clone

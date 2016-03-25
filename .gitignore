@@ -9,3 +9,6 @@ pushtest.js
 
 # env file
 .env
+
+# conventions file
+conventions
