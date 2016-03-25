@@ -21,6 +21,7 @@ Suffice to say, the non-javascript version was terminalchat1.  There's a reason 
 Is it a hack?  Yes, yes it is.
 
 ### Changelog
+- v2.0.2 - Messages sent out into the aether now wait for at least one person to read them before dying.  Also code cleanup.
 - v2.0.1 - Added queuing of incoming messages, and user logging
 - v2.0.0 - Initial
 
