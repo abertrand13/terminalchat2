@@ -1,0 +1,5 @@
+MESSAGE FORMAT
+
+name: name of the person sending the message
+text: text in the message
+uid: id unique to the user (that they don't choose)

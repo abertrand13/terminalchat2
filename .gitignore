@@ -1,0 +1,8 @@
+# swp files
+*.swp
+
+# node modules
+node_modules/
+
+# test file
+pushtest.js
