@@ -57,7 +57,7 @@ db.child('messages').on('child_removed', function(snapshot) {
 
 	} else {
 		// play a sound and display the new message
-		player.play('alert.mp3', function(err) {});
+		player.play(__dirname + '/alert.mp3', function(err) {});
 		displayMessage(newMsg);
 	}
 });
