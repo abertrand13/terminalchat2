@@ -1,17 +1,18 @@
 {
-	"name": "terminal-chat-2",
-	"description": "In-terminal chat client written for OSX",
-	"version": "2.0.2",
-	"respository": {
-		"type": "git",
-		"url": "https://github.com/abertrand13/terminalchat2"
-	},
-	"dependencies": {
-		"firebase": "^2.4.1",
-		"keypress": "^0.2.1",
-		"node-env-file": "^0.1.8"
-	},
-	"scripts": {
-		"start": "node tc2.js"
-	}
+  "name": "terminal-chat-2",
+  "description": "In-terminal chat client written for OSX",
+  "version": "2.0.2",
+  "respository": {
+    "type": "git",
+    "url": "https://github.com/abertrand13/terminalchat2"
+  },
+  "dependencies": {
+    "firebase": "^2.4.1",
+    "keypress": "^0.2.1",
+    "node-env-file": "^0.1.8",
+    "play-sound": "0.0.7"
+  },
+  "scripts": {
+    "start": "node tc2.js"
+  }
 }

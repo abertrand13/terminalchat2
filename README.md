@@ -21,6 +21,7 @@ Suffice to say, the non-javascript version was terminalchat1.  There's a reason 
 Is it a hack?  Yes, yes it is.
 
 ### Changelog
+- v2.0.3 - Added alert sound.
 - v2.0.2 - Messages sent out into the aether now wait for at least one person to read them before dying.  Also code cleanup.
 - v2.0.1 - Added queuing of incoming messages, and user logging
 - v2.0.0 - Initial
@@ -31,3 +32,8 @@ Is it a hack?  Yes, yes it is.
 - [keypress](https://www.npmjs.com/package/keypress)
 - [node-env-file](https://www.npmjs.com/package/node-env-file)
 - [readline](https://www.npmjs.com/package/readline)
+- [play-sound](https://www.npmjs.com/package/play-sound)
+
+### Legal Shenanigans
+
+So that alert sound you here?  That's from Portal (great game), and I don't remember which site I got it from and I don't remember the usage licensing.  If Valve (or anyone else) sees this and wants to tell me to cut it the f#!k out, that is totally cool.

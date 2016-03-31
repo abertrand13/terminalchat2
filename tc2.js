@@ -3,6 +3,7 @@ var readline = require('readline');
 var Firebase = require('firebase');
 var keypress = require('keypress');
 var env = require('node-env-file');
+var player = require('play-sound')(opts = {});
 
 // Load environment variables
 env(__dirname + '/.env');
@@ -55,6 +56,8 @@ db.child('messages').on('child_removed', function(snapshot) {
 		printInfo("[delivered]");
 
 	} else {
+		// play a sound and display the new message
+		player.play('alert.mp3', function(err) {});
 		displayMessage(newMsg);
 	}
 });
