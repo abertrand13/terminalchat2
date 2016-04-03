@@ -15,7 +15,9 @@ var readingInput;		// state vars
 var db;					// firebase db connection
 var queuedMessages = [];// queue of incoming messages
 var sentMessages = [];	// list of sent messages (that have yet to be deleted)
+var queuedInfos = [];	// queue of infos to display
 var numConnectedUsers = 0;	// number of currently active users
+var date;				// Date object for timestamps
 
 
 showWelcome();
@@ -39,6 +41,9 @@ rl.question('Identify Yourself: ', (myName) => {
 		// go through any messages that have been waiting for a user to connect to be deleted
 		processSentMessages();
 	});
+
+	// enable keypresses for message detection
+	keypress(process.stdin);
 });
 
 // output received messages.  wait 'til we're done sending if necessary
@@ -77,10 +82,19 @@ db.child('users').on('child_removed', function(snapshot) {
 
 
 // interrupt for sending messages
-process.stdin.on('keypress', function(ch, key) {	
-	if(key && key.name == 's' && key.ctrl && !readingInput) {
+function setupKeyboardInput() {
+	process.stdin.on('keypress', function(ch, key) {	
+	// ctrl (q or c) to quit
+	if(key && (key.name == 'q' || key.name == 'c') && key.ctrl) {
+		console.log("Shutting down.");
+		process.exit(0);
+	} else {
+
+	
+	// if(key && key.name == 's' && key.ctrl && !readingInput) {
 		readingInput = true;
-		rl.question("\x1b[31m" + name + '\x1b[0m :: ' , (msg) => {
+		// display prompt (user's name) and read input in	
+		rl.question(generateTimeString() + "\x1b[31m" + name + '\x1b[0m :: ' , (msg) => {
 			// sender also removes message, which triggers other clients	
 			var lastMsg = db.child('messages').push({
 				"uid"  : uid,
@@ -97,15 +111,12 @@ process.stdin.on('keypress', function(ch, key) {
 
 			readingInput = false;
 			processMessageQueue();
+			processInfoQueue();
 		});
 	}
-
-	// ctrl (q or c) to quit
-	if(key && (key.name == 'q' || key.name == 'c') && key.ctrl) {
-		console.log("Shutting down.");
-		process.exit(0);
-	}
 });
+
+}
 
 function showWelcome() {
 	console.log("\x1b[34m+---------------------------+");
@@ -122,11 +133,13 @@ function runSetup() {
 	});
 
 	// more input	
-	keypress(process.stdin);
+	// keypress(process.stdin);
 	readingInput = false;
 
 	// set up db connection
 	db = new Firebase(process.env.dburl);
+
+	date = new Date();
 }
 
 function processMessageQueue() {
@@ -139,19 +152,39 @@ function processMessageQueue() {
 	}
 }
 
-function processSentMessages() {
+function processSentMessages() { // should rename this?
 	var msg;
 	while(msg = sentMessages.shift()) {
 		msg.remove();	
 	}
 }
 
+function processInfoQueue() {
+	var info;
+	while(info = queuedInfos.shift()) {
+		printInfo(info);
+	}
+}
+
 function displayMessage(newMsg) {	
-	console.log("\x1b[37m" + newMsg.name +  "\x1b[0m :: " + newMsg.text);
+	console.log(generateTimeString() + "\x1b[37m" + newMsg.name +  "\x1b[0m :: " + newMsg.text);
+}
+
+function generateTimeString() {
+	var h = date.getHours();
+	h = h < 10 ? '0' + h : h;
+	var m = date.getMinutes();
+	m = m < 10 ? '0' + m : m;
+
+	return "[ " + h + ":" + m + " ] ";
 }
 
 function printInfo(msg) {
-	console.log("\x1b[34m" + msg + "\x1b[0m");
+	if(readingInput) {
+		queuedInfos.push(msg);
+	} else {
+		console.log("\x1b[34m" + msg + "\x1b[0m");
+	}
 }
 
 process.stdin.setRawMode(true);
