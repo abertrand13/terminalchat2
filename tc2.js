@@ -141,12 +141,15 @@ function setupKeyboardInput() {
 			process.stdout.write("\r" + generateTimeString() + '\x1b[31m' + name + '\x1b[0m :: ' + chunk.toString());
 		}
 		
+		// add to the end of the message running message
 		currentMessage += chunk.toString();
 		
 		// check for the enter key	
 		if(chunk[chunk.length - 1] == 0xd) {
+			// chop the [enter key] signal	
 			currentMessage = currentMessage.slice(0, -1);
 			
+			// send message	
 			var lastMsg = db.child('messages').push({
 				"uid"  : uid,
 				"name" : name,
@@ -159,7 +162,9 @@ function setupKeyboardInput() {
 				sentMessages.push(lastMsg);
 				printInfo("[queued]");
 			}
-
+			
+			// reset message variables
+			currentMessage = "";	
 			readingInput = false;
 			processMessageQueue();
 			processInfoQueue();
