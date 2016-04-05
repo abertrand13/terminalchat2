@@ -18,6 +18,7 @@ var sentMessages = [];	// list of sent messages (that have yet to be deleted)
 var queuedInfos = [];	// queue of infos to display
 var numConnectedUsers = 0;	// number of currently active users
 var date;				// Date object for timestamps
+var currentMessage = "";// currently input message (running concatenation of buffer input)
 
 
 showWelcome();
@@ -43,7 +44,7 @@ rl.question('Identify Yourself: ', (myName) => {
 	});
 
 	// enable keypresses for message detection
-	keypress(process.stdin);
+	setupKeyboardInput();
 });
 
 // output received messages.  wait 'til we're done sending if necessary
@@ -83,23 +84,73 @@ db.child('users').on('child_removed', function(snapshot) {
 
 // interrupt for sending messages
 function setupKeyboardInput() {
-	process.stdin.on('keypress', function(ch, key) {	
-	// ctrl (q or c) to quit
-	if(key && (key.name == 'q' || key.name == 'c') && key.ctrl) {
-		console.log("Shutting down.");
-		process.exit(0);
-	} else {
+	// process.stdout.pause();
+	/* process.stdin.on('keypress', function(ch, key) {
+		// ctrl (q or c) to quit
+		if(key && (key.name == 'q' || key.name == 'c') && key.ctrl) {
+			console.log("Shutting down.");
+			process.exit(0);
+		} else if(!readingInput && key && key.name != 'return') {
+			// only prompt once (and not while the user is inputting message or finishing message)
+			// first delete current buffer
+			readline.moveCursor(process.stdin, -1, 0);
+			readline.clearScreenDown(process.stdin);
+			// process.stdout.resume();
+			process.stdin.read();	
 
-	
-	// if(key && key.name == 's' && key.ctrl && !readingInput) {
-		readingInput = true;
-		// display prompt (user's name) and read input in	
-		rl.question(generateTimeString() + "\x1b[31m" + name + '\x1b[0m :: ' , (msg) => {
-			// sender also removes message, which triggers other clients	
+			// console.log(process.stdin);
+		
+			readingInput = true;
+			// display prompt (user's name) and read input in	
+			rl.question(generateTimeString() + "\x1b[31m" + name + '\x1b[0m :: ' , (msg) => {
+				// sender also removes message, which triggers other clients	
+				var lastMsg = db.child('messages').push({
+					"uid"  : uid,
+					"name" : name,
+					"text" : msg
+				});
+
+				if(numConnectedUsers > 1) {
+					lastMsg.remove();
+				} else {
+					sentMessages.push(lastMsg);
+					printInfo("[queued]");
+				}
+
+				readingInput = false;
+				processMessageQueue();
+				processInfoQueue();
+			});
+		}
+	}); */
+
+	process.stdin.on('data', (chunk) => {
+		// console.log(chunk.toString());
+		// console.log(chunk);
+		
+		// test for ^c	
+		if(chunk[chunk.length - 1] == 3) {
+			console.log('Shutting Down');
+			process.exit(0);
+		}
+
+		if(!readingInput) {
+			// signal that we're reading input	
+			readingInput = true;
+			// this is, for the moment, a hack
+			process.stdout.write("\r" + generateTimeString() + '\x1b[31m' + name + '\x1b[0m :: ' + chunk.toString());
+		}
+		
+		currentMessage += chunk.toString();
+		
+		// check for the enter key	
+		if(chunk[chunk.length - 1] == 0xd) {
+			currentMessage = currentMessage.slice(0, -1);
+			
 			var lastMsg = db.child('messages').push({
 				"uid"  : uid,
 				"name" : name,
-				"text" : msg
+				"text" : currentMessage
 			});
 
 			if(numConnectedUsers > 1) {
@@ -112,10 +163,12 @@ function setupKeyboardInput() {
 			readingInput = false;
 			processMessageQueue();
 			processInfoQueue();
-		});
-	}
-});
+		}
+	});
 
+	process.stdin.on('end', () => {
+		console.log('andddd we\'re done');
+	});
 }
 
 function showWelcome() {
