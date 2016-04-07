@@ -44,8 +44,19 @@ rl.question('Identify Yourself: ', (myName) => {
 		printInfo("[" + user + " has joined]");
 		numConnectedUsers++;
 
-		// go through any messages that have been waiting for a user to connect to be deleted
-		processSentMessages();
+		if(numConnectedUsers > 1) {
+			// when a new user connects, go through any messages
+			// that have been queued (ie, they were sent out into the ether)
+			// and are waiting for at least one other person to see them
+			processSentMessages();
+		} else if(numConnectedUsers == 1) {
+			// if we are the only user active right now,
+			// it's possible that messages have been left for us
+			// if so, read through them
+			db.child('messages').once('child_added', function(snapshot) {
+				snapshot.ref().remove();	
+			});
+		}
 	});
 
 	// enable keypresses for message detection
@@ -79,13 +90,6 @@ db.child('users').on('child_removed', function(snapshot) {
 	printInfo("[" + user + " has left]");
 	numConnectedUsers--;
 });
-
-/*db.child('users').on('value', function(snapshot) {
-	var users = snapshot.val();
-	numConnectedUsers = Object.keys(users).length;
-	console.log(numConnectedUsers);
-});*/
-
 
 // interrupts for sending messages
 function setupKeyboardInput() {
